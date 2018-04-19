@@ -1,0 +1,125 @@
+<?php
+
+/**
+ * @file
+ * Make blocks collapsible.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\block\Entity\Block;
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function collapsiblock_form_block_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $default_config = \Drupal::config('collapsiblock.settings');
+  if (!empty($form['id']['#default_value'])) {
+    $block = Block::load($form['id']['#default_value']);
+    if ($block) {
+      $default_state = $block->get('collapsiblock');
+      $settings['collapse_type'] = $default_state['block-' . str_replace('_', '-', $block->get('id'))];
+    }
+  }
+
+  $form['collapsiblock_settings'] = [
+    '#type' => 'details',
+    '#title' => t('Collapsible'),
+    '#open' => TRUE,
+  ];
+  $form['collapsiblock_settings']['collapse_type'] = [
+    '#type' => 'radios',
+    '#title' => t('Block collapse behavior'),
+    '#options' => [
+      1 => t('None.'),
+      2 => t('Collapsible, expanded by default.'),
+      3 => t('Collapsible, collapsed by default.'),
+      4 => t('Collapsible, collapsed all the time.'),
+    ],
+    '#default_value' => !empty($settings['collapse_type']) ? $settings['collapse_type'] : $default_config->get('default_state'),
+  ];
+  $form['actions']['submit']['#submit'][] = 'collapsiblock_submit';
+}
+
+/**
+ * Block form submit callback.
+ */
+function collapsiblock_submit(array &$form, FormStateInterface $form_state) {
+  $settings = $form_state->getValues();
+  if (!empty($form['id']['#default_value'])) {
+    // Set default values for config which require dynamic values.
+    \Drupal::configFactory()->getEditable('block.block.' . $form['id']['#default_value'])
+      ->set('collapsiblock.block-' . str_replace('_', '-', $settings['id']), $settings['collapsiblock_settings']['collapse_type'])
+      ->save();
+  }
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function collapsiblock_page_attachments(array &$attachments) {
+  $default_config = \Drupal::config('collapsiblock.settings');
+  $theme_name = \Drupal::theme()->getActiveTheme()->getName();
+
+  // Theme settings.
+  $collapsiblock_title = !empty(theme_get_setting('title', $theme_name)) ? theme_get_setting('title', $theme_name) : $default_config->get('title');
+  $collapsiblock_block = !empty(theme_get_setting('block', $theme_name)) ? theme_get_setting('block', $theme_name) : $default_config->get('block');
+  $collapsiblock_content = !empty(theme_get_setting('content', $theme_name)) ? theme_get_setting('content', $theme_name) : $default_config->get('content');
+
+  // Load all blocks.
+  $blocks = Block::loadMultiple();
+  if (!empty($blocks)) {
+    $collapsi_blocks = [];
+    foreach ($blocks as $key => $block) {
+      if (!empty($block->get('collapsiblock'))) {
+        $collapsi_blocks['collapsiblock.block-' . str_replace('_', '-', $key)] = $block->get('collapsiblock.block-' . str_replace('_', '-', $key));
+      }
+    }
+
+    // Add block settings for js.
+    $attachments['#attached']['drupalSettings']['collapsiblock']['blocks'] = $collapsi_blocks;
+    $attachments['#attached']['drupalSettings']['collapsiblock']['default_state'] = $default_config->get('default_state');
+    $attachments['#attached']['drupalSettings']['collapsiblock']['active_pages'] = $default_config->get('active_pages');
+    $attachments['#attached']['drupalSettings']['collapsiblock']['slide_type'] = $default_config->get('slide_type');
+    $attachments['#attached']['drupalSettings']['collapsiblock']['slide_speed'] = $default_config->get('slide_speed');
+    $attachments['#attached']['drupalSettings']['collapsiblock']['block_title'] = $collapsiblock_title;
+    $attachments['#attached']['drupalSettings']['collapsiblock']['block'] = $collapsiblock_block;
+    $attachments['#attached']['drupalSettings']['collapsiblock']['block_content'] = $collapsiblock_content;
+
+    // Load css and js libraries.
+    $attachments['#attached']['library'][] = 'collapsiblock/corescripts';
+  }
+}
+
+/**
+ * Implements hook_form_system_theme_settings_alter().
+ */
+function collapsiblock_form_system_theme_settings_alter(&$form, FormStateInterface $form_state) {
+  $default_config = \Drupal::config('collapsiblock.settings');
+  $theme_name = \Drupal::theme()->getActiveTheme()->getName();
+
+  // Add new fields for default settings.
+  $form['collapsiblock'] = [
+    '#type' => 'details',
+    '#title' => t('Collapsiblock selectors'),
+    '#open' => TRUE,
+    '#description' => t("Force <a href='http://api.jquery.com/category/selectors/'>CSS selector</a> if collapsiblock doesn't work out of the box"),
+    '#weight' => 0,
+    '#attributes' => ['id' => 'collapsiblock_form'],
+  ];
+  $form['collapsiblock']['collapsiblock_block'] = [
+    '#type' => 'textfield',
+    '#title' => t('Block'),
+    '#default_value' => !empty(theme_get_setting('collapsiblock_block', $theme_name)) ? theme_get_setting('collapsiblock_block', $theme_name) : $default_config->get('title'),
+  ];
+  $form['collapsiblock']['collapsiblock_title'] = [
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#default_value' => !empty(theme_get_setting('collapsiblock_title', $theme_name)) ? theme_get_setting('collapsiblock_title', $theme_name) : $default_config->get('block'),
+  ];
+
+  $form['collapsiblock']['collapsiblock_content'] = [
+    '#type' => 'textfield',
+    '#title' => t('Block content'),
+    '#default_value' => !empty(theme_get_setting('collapsiblock_content', $theme_name)) ? theme_get_setting('collapsiblock_content', $theme_name) : $default_config->get('content'),
+  ];
+}

@@ -1,0 +1,11 @@
+corescripts:
+  css:
+    theme:
+      css/collapsiblock.css: {}
+  js:
+    js/collapsiblock.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.cookie
+    - core/drupalSettings
+    - core/drupal

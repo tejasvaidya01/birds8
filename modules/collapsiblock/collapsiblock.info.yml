@@ -1,0 +1,13 @@
+name: 'Collapsiblock'
+type: 'module'
+description: 'Makes blocks collapsible.'
+package: 'User interface'
+# core: '8.x'
+libraries:
+  - collapsiblock/collapsiblock-corescripts
+
+# Information added by Drupal.org packaging script on 2017-12-11
+version: '8.x-1.0-alpha1'
+core: '8.x'
+project: 'collapsiblock'
+datestamp: 1512985087

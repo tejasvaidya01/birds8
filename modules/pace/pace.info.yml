@@ -1,0 +1,13 @@
+name: pace
+type: module
+description: 'Enable PACE loader on your website'
+# core: 8.x
+package: JavaScript
+#configure = admin/config/user-interface/pace
+configure: pace.settings
+
+# Information added by Drupal.org packaging script on 2017-06-19
+version: '8.x-1.x-dev'
+core: '8.x'
+project: 'pace'
+datestamp: 1497888245

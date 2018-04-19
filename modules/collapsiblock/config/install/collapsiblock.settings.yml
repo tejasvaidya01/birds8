@@ -1,0 +1,7 @@
+default_state: 3
+active_pages: FALSE
+slide_type: 1
+slide_speed: 200
+title: ':header:first'
+block: 'div.block'
+content: 'div.content'
