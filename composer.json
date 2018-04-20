@@ -9,7 +9,8 @@
         "commerceguys/addressing": "^0.8.4",
 	"drupal/address": "~1.0",
         "phayes/geophp": "^1.2",
-        "drupal/console": "~1.0"
+        "drupal/console": "~1.0",
+        "drupal/menu_item_role_access": "^1.0"
     },
     "replace": {
         "drupal/core": "^8.5"
